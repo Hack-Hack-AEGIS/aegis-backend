@@ -1,0 +1,14 @@
+{
+  "id": "scene1-bank-remote-access",
+  "description": "aegis-frontend Scene 1 transcript (demo/bankScam.ts), extended with the predicted next steps.",
+  "turns": [
+    {"speaker": "caller", "at": 500, "text": "Hello Mr. Ravi Kumar, this is Amit Sharma calling from SBI head office. Your account ending 4821 has suspicious activity."},
+    {"speaker": "user", "at": 2500, "text": "Oh, what happened?"},
+    {"speaker": "caller", "at": 4000, "text": "Sir, your account will be frozen in 10 minutes. Call me back on 9876543210 only."},
+    {"speaker": "user", "at": 6500, "text": "Okay, I am calling."},
+    {"speaker": "caller", "at": 8000, "text": "Do not disconnect. Install this app, then confirm with your UPI ID ravi.k@oksbi."},
+    {"speaker": "user", "at": 10500, "text": "I have installed it."},
+    {"speaker": "caller", "at": 12000, "text": "Good. You will get an SMS now, read me the 6 digit OTP so I can block the fraud transaction."},
+    {"speaker": "caller", "at": 15000, "text": "Now transfer your balance to the RBI safe account 50100234567812 to keep it protected."}
+  ]
+}
