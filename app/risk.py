@@ -3,6 +3,9 @@ from aegis_core.taxonomy import STAGE_INDEX, Signal, Stage
 
 RANK = ["NORMAL", "WATCH", "INTERVENE", "CRITICAL"]
 MONEY = {"CREDENTIALS", "TRANSFER"}
+# Asking for an OTP/PIN or a payment while pressuring the user is the last
+# moment a warning still helps, so it pauses before the user answers.
+ASK = {Signal.CREDENTIAL_REQUEST, Signal.PAYMENT_REQUEST}
 
 def assess(core, prev="NORMAL"):
     seen = {s for e in core.events_log for s in e.signals()}
@@ -24,7 +27,8 @@ def assess(core, prev="NORMAL"):
     if money_next: d.append("Financial action approaching")
 
     if not pressure or score < 0.10: level = "NORMAL"
-    elif si >= STAGE_INDEX[Stage.MONEY_MOVEMENT] or (si >= STAGE_INDEX[Stage.COMPLIANCE] and money_next):
+    elif (si >= STAGE_INDEX[Stage.MONEY_MOVEMENT] or (si >= STAGE_INDEX[Stage.COMPLIANCE] and money_next)
+          or seen & ASK):
         level = "CRITICAL"
     elif si >= STAGE_INDEX[Stage.ISOLATION] or score >= 0.5: level = "INTERVENE"
     else: level = "WATCH"

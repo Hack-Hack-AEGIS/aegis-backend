@@ -26,6 +26,8 @@ class LiveSession:
         if level != self.level or drivers != self.last_drivers:
             events.append({"type": "risk", "at": at + 20, "level": level, "drivers": drivers})
         self.level, self.last_drivers = level, drivers
-        pz = self.pause.check(level, drivers, at + 30)
+        pz = None
+        if level == "CRITICAL" and not self.pause.fired:
+            pz = self.pause.check(level, drivers, at + 30, self.core.analysis().get("explanation"))
         if pz: events.append(pz)
         return sorted(events, key=lambda e: e["at"])
