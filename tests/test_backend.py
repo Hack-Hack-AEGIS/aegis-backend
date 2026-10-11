@@ -121,3 +121,32 @@ def test_concurrent_turns():
         assert len(transcripts) >= 2
         assert transcripts[0]["text"] == "First turn"
         assert transcripts[1]["text"] == "Second turn"
+
+def test_reality_pause_has_explanation():
+    with client.websocket_connect("/ws?replay=bank_scam&speed=100") as websocket:
+        pause = None
+        for _ in range(200):
+            data = websocket.receive_json()
+            if data.get("type") == "reality_pause":
+                pause = data
+                break
+        assert pause is not None
+        ex = pause["explanation"]
+        assert ex["headline"]["en"] and ex["headline"]["hi"]
+        assert ex["reasons"] and all(r["quote"] for r in ex["reasons"])
+        assert ex["next_step"]["en"] and ex["next_step"]["hi"]
+
+def test_shared_session_broadcast():
+    with client.websocket_connect("/ws?session=call-1") as audio, \
+         client.websocket_connect("/ws?session=call-1") as dashboard:
+        audio.send_json({"speaker": "caller", "text": "This is SBI head office, your account will be frozen."})
+        for ws in (audio, dashboard):
+            seen = []
+            while "transcript" not in seen:
+                seen.append(ws.receive_json()["type"])
+
+def test_bad_session_id_rejected():
+    from starlette.websockets import WebSocketDisconnect
+    with pytest.raises(WebSocketDisconnect):
+        with client.websocket_connect("/ws?session=../x") as ws:
+            ws.receive_json()

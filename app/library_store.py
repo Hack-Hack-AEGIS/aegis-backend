@@ -1,4 +1,5 @@
 import json
+import os
 import threading
 from pathlib import Path
 from pydantic import BaseModel, ValidationError, Field
@@ -9,7 +10,7 @@ from aegis_core.taxonomy import Step, Signal
 _lock = threading.Lock()
 _current_library = default_library()
 
-DATA_DIR = Path("data")
+DATA_DIR = Path(os.getenv("AEGIS_DATA_DIR", "data"))
 USER_INCIDENTS_FILE = DATA_DIR / "user_incidents.json"
 
 class IncidentCreate(BaseModel):

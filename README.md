@@ -46,7 +46,7 @@ type AegisEvent =
   | { type: "shadowpath"; at: number; next: string; confidence: number; evidence: string[] }
   | { type: "risk"; at: number; level: RiskLevel; drivers: string[] }
   | { type: "privacy"; at: number; detected: number; removed: number; transmitted: number }
-  | { type: "reality_pause"; at: number; reasons: string[] };
+  | { type: "reality_pause"; at: number; reasons: string[]; explanation?: Explanation };
 ```
 
 Conventions: `at` is milliseconds from interaction start and must be monotonic per session. `progress` is 0 to 1. `confidence` and `matchPct` are 0 to 100. `risk` always carries `drivers`. Transcript text is always already redacted. Stage names describe observable communication, never the user's mind.
@@ -343,6 +343,27 @@ npm run dev
 Open http://localhost:3000, click **Live (backend)**. Open http://localhost:3000/patterns for Scene 2.
 
 Optional LLM tier (off by default): `AEGIS_EXTRACTOR=ensemble-local` with `AEGIS_LLM_BASE_URL`, `AEGIS_LLM_MODEL` set (see aegis-core README), or `ensemble-claude` with `ANTHROPIC_API_KEY`.
+
+Fine-tuned tier used in our numbers (Ollama model built from the `adapter-v3` release of aegis-core):
+
+```bash
+LLAMA_ARG_CACHE_RAM=256 ollama serve &          # cap Ollama's prompt cache, it otherwise grows to GBs
+AEGIS_EXTRACTOR=ensemble-local AEGIS_LLM_MODEL=aegis-qwen3b-v3 AEGIS_LLM_FEWSHOT=0 \
+  uvicorn app.main:app --host 127.0.0.1 --port 8000
+```
+
+Shared call session: the audio client (aegis-realtime) and the dashboard both connect to `/ws?session=<call id>`
+(letters, digits, `_` and `-`, up to 64 chars). Turns sent by either socket are processed once and every event
+goes to all sockets in that session. Without `session`, each socket gets its own call as before.
+
+User-added incidents are stored in `$AEGIS_DATA_DIR/user_incidents.json` (default `data/`) and loaded on startup.
+Tests use a temporary folder.
+
+`reality_pause.explanation` is the plain-language alert from aegis-core: `headline {en, hi}`, `reasons[] {signal, en, hi, quote}`,
+`advice[] {en, hi}`, `next_step {en, hi}`. Show the headline, each reason with its quote, and the next step as the main button.
+
+Risk: a credential (OTP/PIN/card) or payment request after a pressure cue is CRITICAL, so the Reality Pause fires
+before the user answers. Held-out, rules tier: 4/15 scams paused before the last turn, 0/6 normal calls paused.
 
 ## 10. Acceptance tests (`tests/test_backend.py`)
 
